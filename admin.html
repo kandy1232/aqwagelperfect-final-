@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | AqwaGel Sri Lanka</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333;background:#f8fafc;min-width:320px}
+img{max-width:100%;height:auto;display:block}
+a{text-decoration:none;color:#1a3c6e}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+.site-header{background:#1a3c6e;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:.5rem;color:#fff;font-size:1.4rem;font-weight:700}
+.logo img{height:40px;width:auto;display:block}
+.admin-login{max-width:360px;margin:3rem auto;padding:2rem;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);text-align:center}
+.admin-login h2{color:#1a3c6e;margin-bottom:1.5rem}
+.admin-login input{width:100%;padding:.75rem;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:1rem;font-size:1rem}
+.admin-login button{width:100%;padding:.75rem;background:#1a3c6e;color:#fff;border-radius:8px;font-weight:600;font-size:1rem}
+.admin-panel{display:none;max-width:1200px;margin:0 auto;padding:1rem}
+.admin-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:2px solid #e2e8f0;flex-wrap:wrap}
+.admin-tab{padding:.6rem 1rem;font-weight:600;color:#666;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer}
+.admin-tab.active{color:#1a3c6e;border-color:#1a3c6e}
+.admin-tab-content{display:none}
+.admin-tab-content.active{display:block}
+.admin-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.admin-table th,.admin-table td{padding:.6rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0}
+.admin-table th{background:#f1f5f9;color:#1a3c6e;font-weight:600;font-size:.8rem;text-transform:uppercase}
+.admin-table tr:hover{background:#f8fafc}
+.admin-table img{width:48px;height:36px;object-fit:cover;border-radius:4px}
+.btn-sm{padding:.3rem .6rem;font-size:.75rem;border-radius:6px;cursor:pointer}
+.btn-primary{background:#1a3c6e;color:#fff}
+.btn-danger{background:#c62828;color:#fff}
+.btn-success{background:#2e7d32;color:#fff}
+.admin-form{background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:1.5rem}
+.admin-form h3{margin-bottom:1rem;color:#1a3c6e;font-size:1.1rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:#666;margin-bottom:.35rem}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:.6rem .75rem;border:1px solid #e2e8f0;border-radius:8px;font-size:.9rem;font-family:inherit}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:#1a3c6e}
+.form-group textarea{resize:vertical;min-height:80px}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;background:#1a3c6e;color:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;font-size:.9rem}
+.toast.show{transform:translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo" aria-label="AqwaGel Home">
+      <img src="img/logo.png" alt="AqwaGel">
+    </a>
+  </div>
+</header>
+
+<div class="admin-login" id="loginBox">
+  <h2>🔐 Admin Login</h2>
+  <input type="password" id="adminPass" placeholder="Enter admin password">
+  <button onclick="doLogin()">Login</button>
+  <p style="margin-top:1rem;font-size:.85rem;color:#666">Default password: <strong>aqwagel2026</strong></p>
+</div>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="switchTab('products')">Products</div>
+    <div class="admin-tab" onclick="switchTab('reviews')">Reviews</div>
+    <div class="admin-tab" onclick="switchTab('categories')">Categories</div>
+  </div>
+
+  <div class="admin-tab-content active" id="tab-products">
+    <div class="admin-form">
+      <h3>Add / Edit Product</h3>
+      <input type="hidden" id="editId">
+      <div class="form-row">
+        <div class="form-group"><label>Product ID (unique)</label><input type="text" id="pId" placeholder="e.g. world-map"></div>
+        <div class="form-group"><label>Name (English)</label><input type="text" id="pName" placeholder="e.g. World Map Poster"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Name (Sinhala)</label><input type="text" id="pNameSi" placeholder="e.g. ලෝක සිතියමේ පෝස්ටර්"></div>
+        <div class="form-group"><label>Category</label>
+          <select id="pCat">
+            <option value="maps">Maps</option>
+            <option value="science">Science</option>
+            <option value="language">Language</option>
+            <option value="math">Math</option>
+            <option value="history">History</option>
+            <option value="art">Art & Coloring</option>
+            <option value="stationery">Stationery</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Price (LKR)</label><input type="number" id="pPrice" placeholder="450"></div>
+        <div class="form-group"><label>Image URL</label><input type="text" id="pImage" placeholder="https://images.unsplash.com/..."></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea id="pDesc" placeholder="Short product description..."></textarea></div>
+      <div class="form-group">
+        <label><input type="checkbox" id="pStock" checked> In Stock</label>
+      </div>
+      <button class="btn-success" style="padding:.75rem 1.5rem;border-radius:8px;font-weight:600" onclick="saveProduct()">Save Product</button>
+      <button class="btn-sm" style="background:#666;color:#fff;margin-left:.5rem" onclick="clearForm()">Clear</button>
+    </div>
+
+    <table class="admin-table">
+      <thead><tr><th>Image</th><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+      <tbody id="productTable"></tbody>
+    </table>
+  </div>
+
+  <div class="admin-tab-content" id="tab-reviews">
+    <h3 style="margin-bottom:1rem">All Reviews</h3>
+    <div id="reviewsList"></div>
+  </div>
+
+  <div class="admin-tab-content" id="tab-categories">
+    <h3 style="margin-bottom:1rem">Categories</h3>
+    <table class="admin-table">
+      <thead><tr><th>ID</th><th>Name</th><th>Sinhala</th><th>Icon</th></tr></thead>
+      <tbody id="categoryTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const ADMIN_PASS = 'aqwagel2026';
+
+function doLogin(){
+  const pass = document.getElementById('adminPass').value;
+  if(pass === ADMIN_PASS){
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadProducts();
+    loadReviews();
+    loadCategories();
+  } else {
+    alert('Wrong password!');
+  }
+}
+
+function getProducts(){ return JSON.parse(localStorage.getItem('aq_products')||'[]'); }
+function saveProducts(products){ localStorage.setItem('aq_products', JSON.stringify(products)); }
+
+function switchTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-tab-content').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function loadProducts(){
+  const products = getProducts();
+  document.getElementById('productTable').innerHTML = products.map(p=>`
+    <tr>
+      <td><img src="${p.image}" alt="${p.name}"></td>
+      <td>${p.id}</td>
+      <td>${p.name}<br><small>${p.nameSi}</small></td>
+      <td>LKR ${p.price}</td>
+      <td>${p.stock?'✅':'❌'}</td>
+      <td>
+        <button class="btn-sm btn-primary" onclick="editProduct('${p.id}')">Edit</button>
+        <button class="btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function editProduct(id){
+  const p = getProducts().find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('editId').value = p.id;
+  document.getElementById('pId').value = p.id;
+  document.getElementById('pName').value = p.name;
+  document.getElementById('pNameSi').value = p.nameSi;
+  document.getElementById('pCat').value = p.cat;
+  document.getElementById('pPrice').value = p.price;
+  document.getElementById('pImage').value = p.image;
+  document.getElementById('pDesc').value = p.desc;
+  document.getElementById('pStock').checked = p.stock;
+}
+
+function deleteProduct(id){
+  if(!confirm('Delete this product?')) return;
+  let products = getProducts();
+  products = products.filter(p=>p.id!==id);
+  saveProducts(products);
+  loadProducts();
+  showToast('Product deleted');
+}
+
+function saveProduct(){
+  const id = document.getElementById('pId').value.trim();
+  const name = document.getElementById('pName').value.trim();
+  const nameSi = document.getElementById('pNameSi').value.trim();
+  const cat = document.getElementById('pCat').value;
+  const price = parseInt(document.getElementById('pPrice').value);
+  const image = document.getElementById('pImage').value.trim();
+  const desc = document.getElementById('pDesc').value.trim();
+  const stock = document.getElementById('pStock').checked;
+
+  if(!id||!name||!price){ alert('Please fill required fields'); return; }
+
+  let products = getProducts();
+  const existing = products.findIndex(p=>p.id===id);
+  const product = {id,name,nameSi,cat,price,image,desc,stock,rating:0,reviews:[]};
+
+  if(existing>=0){
+    product.reviews = products[existing].reviews || [];
+    products[existing] = product;
+    showToast('Product updated');
+  } else {
+    products.push(product);
+    showToast('Product added');
+  }
+  saveProducts(products);
+  loadProducts();
+  clearForm();
+}
+
+function clearForm(){
+  document.getElementById('editId').value = '';
+  document.getElementById('pId').value = '';
+  document.getElementById('pName').value = '';
+  document.getElementById('pNameSi').value = '';
+  document.getElementById('pPrice').value = '';
+  document.getElementById('pImage').value = '';
+  document.getElementById('pDesc').value = '';
+  document.getElementById('pStock').checked = true;
+}
+
+function loadReviews(){
+  const products = getProducts();
+  let allReviews = [];
+  products.forEach(p=>{
+    if(p.reviews){
+      p.reviews.forEach((r,idx)=>{
+        allReviews.push({...r, productName: p.name, productId: p.id, reviewIdx: idx});
+      });
+    }
+  });
+
+  if(allReviews.length===0){
+    document.getElementById('reviewsList').innerHTML = '<p style="color:#666">No reviews yet.</p>';
+    return;
+  }
+
+  document.getElementById('reviewsList').innerHTML = allReviews.map(r=>`
+    <div style="padding:1rem;background:#f1f5f9;border-radius:8px;margin-bottom:.75rem">
+      <strong>${r.productName}</strong> — ${r.name} — ${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}<br>
+      <small>${r.date}</small><br>
+      <p>${r.text}</p>
+      <button class="btn-sm btn-danger" onclick="deleteReview('${r.productId}',${r.reviewIdx})">Delete</button>
+    </div>
+  `).join('');
+}
+
+function deleteReview(pid, idx){
+  let products = getProducts();
+  const p = products.find(x=>x.id===pid);
+  if(p && p.reviews){
+    p.reviews.splice(idx,1);
+    saveProducts(products);
+    loadReviews();
+    showToast('Review deleted');
+  }
+}
+
+function loadCategories(){
+  const cats = JSON.parse(localStorage.getItem('aq_categories')||'[]');
+  document.getElementById('categoryTable').innerHTML = cats.map(c=>`
+    <tr><td>${c.id}</td><td>${c.name}</td><td>${c.nameSi}</td><td>${c.icon}</td></tr>
+  `).join('');
+}
+
+function showToast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},2500);
+}
+</script>
+</body>
+</html>
