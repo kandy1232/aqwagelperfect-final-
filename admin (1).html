@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | AqwaGel</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333;background:#f1f5f9;min-width:320px}
+img{max-width:100%;height:auto;display:block}
+a{text-decoration:none;color:#1a3c6e}
+button{cursor:pointer;font-family:inherit;border:none}
+.site-header{background:#1a3c6e;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{color:#fff;font-size:1.4rem;font-weight:700}
+.container{max-width:1200px;margin:0 auto;padding:1rem}
+.login-box{max-width:400px;margin:5rem auto;background:#fff;padding:2rem;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.login-box h2{text-align:center;color:#1a3c6e;margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:#666;margin-bottom:.35rem}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.6rem .75rem;border:1px solid #e2e8f0;border-radius:8px;font-size:.9rem;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#1a3c6e}
+.form-group textarea{resize:vertical;min-height:80px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.75rem 1.5rem;border-radius:8px;font-weight:600;font-size:.95rem;cursor:pointer;border:none}
+.btn-primary{background:#1a3c6e;color:#fff}
+.btn-danger{background:#c62828;color:#fff}
+.btn-success{background:#2e7d32;color:#fff}
+.btn-sm{padding:.4rem .75rem;font-size:.85rem}
+.admin-panel{display:none}
+.admin-panel.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:#fff;padding:1.25rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);text-align:center}
+.stat-card h3{font-size:2rem;color:#1a3c6e;margin-bottom:.25rem}
+.stat-card p{color:#666;font-size:.9rem}
+.category-section{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:1.5rem;overflow:hidden}
+.category-header{background:#1a3c6e;color:#fff;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center}
+.category-header h3{font-size:1.1rem}
+.category-header .count{background:rgba(255,255,255,.2);padding:.25rem .75rem;border-radius:999px;font-size:.85rem}
+.product-table{width:100%;overflow-x:auto}
+.product-table table{width:100%;border-collapse:collapse;min-width:600px}
+.product-table th{background:#eef2f7;color:#1a3c6e;padding:.75rem;text-align:left;font-size:.85rem;font-weight:600}
+.product-table td{padding:.75rem;border-bottom:1px solid #e2e8f0;font-size:.9rem;vertical-align:middle}
+.product-table tr:hover{background:#f8fafc}
+.product-table img{width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc}
+.actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.modal-header{padding:1rem 1.25rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:1.1rem;color:#1a3c6e}
+.modal-close{font-size:1.5rem;color:#666;line-height:1;cursor:pointer}
+.modal-body{padding:1.25rem}
+.tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:2px solid #e2e8f0;flex-wrap:wrap}
+.tab{padding:.75rem 1.25rem;font-weight:600;color:#666;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none}
+.tab.active{color:#1a3c6e;border-bottom-color:#1a3c6e}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.img-preview{width:120px;height:90px;object-fit:cover;border-radius:8px;border:2px solid #e2e8f0;margin-top:.5rem;display:none}
+.img-preview.show{display:block}
+.img-upload-area{border:2px dashed #cbd5e1;border-radius:8px;padding:1.5rem;text-align:center;color:#666;cursor:pointer;transition:all .2s;background:#fff}
+.img-upload-area:hover{border-color:#1a3c6e;background:#f8fafc}
+.img-upload-area.has-image{border-color:#2e7d32;background:#e8f5e9}
+.hidden{display:none}
+.empty-state{text-align:center;padding:2rem;color:#666}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;padding:.75rem 1.25rem;background:#1a3c6e;color:#fff;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:300;transform:translateY(100px);opacity:0;transition:all .3s;font-size:.9rem}
+.toast.show{transform:translateY(0);opacity:1}
+.login-error{color:#c62828;text-align:center;margin-top:1rem;font-size:.9rem}
+@media(max-width:768px){.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">AqwaGel Admin</a>
+    <button class="btn btn-primary btn-sm hidden" onclick="logout()" id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <div class="login-box">
+      <h2>🔐 Admin Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="adminPass" placeholder="Enter admin password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
+        <div id="loginError" class="login-error hidden"></div>
+      </form>
+      <p style="text-align:center;margin-top:1rem;color:#666;font-size:.85rem">Password: <code>aqwagel2026</code></p>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="adminPanel" class="admin-panel">
+    <div class="stats-grid">
+      <div class="stat-card"><h3 id="statProducts">0</h3><p>Total Products</p></div>
+      <div class="stat-card"><h3 id="statReviews">0</h3><p>Total Reviews</p></div>
+      <div class="stat-card"><h3 id="statStock">0</h3><p>In Stock</p></div>
+      <div class="stat-card"><h3 id="statCategories">0</h3><p>Categories</p></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('products')">📦 Products by Category</button>
+      <button class="tab" onclick="switchTab('reviews')">⭐ Reviews</button>
+      <button class="tab" onclick="switchTab('add')">➕ Add Product</button>
+    </div>
+
+    <div id="tab-products" class="tab-content active">
+      <div id="productsByCategory"></div>
+    </div>
+
+    <div id="tab-reviews" class="tab-content">
+      <div id="reviewsList" style="background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)"></div>
+    </div>
+
+    <div id="tab-add" class="tab-content">
+      <div style="background:#fff;padding:1.5rem;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+        <h3 style="color:#1a3c6e;margin-bottom:1rem">➕ Add New Product</h3>
+        <form id="addProductForm">
+          <div class="form-group">
+            <label>Product ID (no spaces, unique) *</label>
+            <input type="text" id="newId" placeholder="e.g. world-map-population" required>
+          </div>
+          <div class="form-group">
+            <label>Name (English) *</label>
+            <input type="text" id="newName" placeholder="e.g. World Map by Population" required>
+          </div>
+          <div class="form-group">
+            <label>Name (Sinhala)</label>
+            <input type="text" id="newNameSi" placeholder="e.g. ජනගහනය අනුව ලෝක සිතියම">
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="newCat" required>
+              <option value="">Select Category</option>
+              <option value="maps">🗺️ Maps & Geography</option>
+              <option value="science">🔬 Science</option>
+              <option value="language">📖 Language</option>
+              <option value="math">🔢 Mathematics</option>
+              <option value="history">🏛️ History</option>
+              <option value="art">🎨 Art & Coloring</option>
+              <option value="stationery">✏️ Stationery</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Price (LKR) *</label>
+            <input type="number" id="newPrice" placeholder="e.g. 650" required>
+          </div>
+          <div class="form-group">
+            <label>Product Image *</label>
+            <div class="img-upload-area" id="uploadArea" onclick="document.getElementById('newImageFile').click()">
+              <p>📷 Click to upload image</p>
+              <p style="font-size:.8rem;color:#999">JPG, PNG, WEBP (max 2MB)</p>
+              <img id="newImgPreview" class="img-preview">
+            </div>
+            <input type="file" id="newImageFile" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'newImgPreview', 'uploadArea', 'newImageData')">
+            <input type="hidden" id="newImageData">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="newDesc" placeholder="Short description of the product..."></textarea>
+          </div>
+          <div class="form-group">
+            <label><input type="checkbox" id="newStock" checked> In Stock</label>
+          </div>
+          <button type="submit" class="btn btn-success">Add Product</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✏️ Edit Product</h3>
+      <span class="modal-close" onclick="closeEditModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="editProductForm">
+        <input type="hidden" id="editId">
+        <div class="form-group">
+          <label>Name (English) *</label>
+          <input type="text" id="editName" required>
+        </div>
+        <div class="form-group">
+          <label>Name (Sinhala)</label>
+          <input type="text" id="editNameSi">
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="editCat" required>
+            <option value="maps">🗺️ Maps & Geography</option>
+            <option value="science">🔬 Science</option>
+            <option value="language">📖 Language</option>
+            <option value="math">🔢 Mathematics</option>
+            <option value="history">🏛️ History</option>
+            <option value="art">🎨 Art & Coloring</option>
+            <option value="stationery">✏️ Stationery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price (LKR) *</label>
+          <input type="number" id="editPrice" required>
+        </div>
+        <div class="form-group">
+          <label>Current Image</label>
+          <img id="editCurrentImg" style="width:120px;height:90px;object-fit:cover;border-radius:8px;margin-bottom:.5rem;display:none">
+          <div class="img-upload-area" id="editUploadArea" onclick="document.getElementById('editImageFile').click()">
+            <p>📷 Click to change image</p>
+            <p style="font-size:.8rem;color:#999">Leave empty to keep current image</p>
+            <img id="editImgPreview" class="img-preview">
+          </div>
+          <input type="file" id="editImageFile" accept="image/*" style="display:none" onchange="handleImageUpload(this, 'editImgPreview', 'editUploadArea', 'editImageData')">
+          <input type="hidden" id="editImageData">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="editDesc"></textarea>
+        </div>
+        <div class="form-group">
+          <label><input type="checkbox" id="editStock"> In Stock</label>
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// PASSWORD
+const ADMIN_PASS = 'aqwagel2026';
+
+// DEFAULT PRODUCTS
+const defaultProducts = [
+  {id:'world-map',name:'World Map Poster',nameSi:'ලෝක සිතියමේ පෝස්ටර්',cat:'maps',price:650,stock:true,desc:'Detailed political world map with country names in English. Large world map for classroom Sri Lanka.',image:'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'srilanka-map',name:'Sri Lanka Map',nameSi:'ශ්‍රී ලංකා සිතියම',cat:'maps',price:450,stock:true,desc:'Detailed Sri Lanka map with districts and major cities marked. Sri Lanka map for school projects.',image:'https://images.unsplash.com/photo-1569163139394-de4798aa62b9?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'solar-system',name:'Solar System',nameSi:'සෞරග්‍රහ මණ්ඩලය',cat:'science',price:550,stock:true,desc:'Colorful solar system poster with planet names and facts. Planets chart for classroom Sri Lanka.',image:'https://images.unsplash.com/photo-1614730341194-75c60740a070?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'human-body',name:'Human Body Chart',nameSi:'මානව ශරීර සටහන',cat:'science',price:600,stock:true,desc:'Anatomical human body chart with labeled organs and systems. Human body chart for school Sri Lanka.',image:'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'giant-coloring',name:'Giant Coloring Poster',nameSi:'විශාල වර්ණ තැබීමේ පෝස්ටර්',cat:'art',price:750,stock:true,desc:'Oversized coloring poster for creative fun. 100cm x 70cm size. Giant coloring poster for kids Sri Lanka.',image:'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'sinhala-alphabet',name:'Sinhala Alphabet Chart',nameSi:'සිංහල අකුරු',cat:'language',price:400,stock:true,desc:'Complete Sinhala alphabet with pronunciation guide for children. Sinhala alphabet chart for kids.',image:'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'multiplication',name:'Multiplication Table',nameSi:'ගුණාකාර සටහන',cat:'math',price:350,stock:true,desc:'1 to 12 multiplication table. Essential for primary students. Times table chart for Grade 3 Sri Lanka.',image:'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'national-symbols',name:'Sri Lanka National Symbols',nameSi:'ශ්‍රී ලංකා ජාතික සංකේත',cat:'history',price:500,stock:true,desc:'National flag, emblem, anthem, flower, tree, bird and animal. Sri Lanka national symbols chart for school.',image:'https://images.unsplash.com/photo-1523990096895-a0a4655f915f?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'ancient-timeline',name:'Ancient Sri Lanka Timeline',nameSi:'පුරාණ ශ්‍රී ලංකා කාල රේඛාව',cat:'history',price:550,stock:true,desc:'From Vijaya to modern era. Key events in Sri Lankan history. Ancient Sri Lanka history timeline poster.',image:'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'insects',name:'Insects of the World',nameSi:'ලෝකයේ කීටයෝ',cat:'science',price:480,stock:true,desc:'Colorful insect chart with names and interesting facts. Insects of the world poster for kids.',image:'https://images.unsplash.com/photo-1535068484622-7a079e573d90?w=600&h=450&fit=crop',rating:0,reviews:[]},
+  {id:'stationery',name:'Educational Stationery Set',nameSi:'අධ්‍යාපනික ලිපිද්‍රව්‍ය සම්පූර්ණය',cat:'stationery',price:1200,stock:true,desc:'Complete stationery set with educational theme. 15 items included. Educational stationery set Sri Lanka.',image:'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&h=450&fit=crop',rating:0,reviews:[]}
+];
+
+const catLabels = {
+  maps: '🗺️ Maps & Geography',
+  science: '🔬 Science',
+  language: '📖 Language',
+  math: '🔢 Mathematics',
+  history: '🏛️ History',
+  art: '🎨 Art & Coloring',
+  stationery: '✏️ Stationery'
+};
+
+// STORAGE FUNCTIONS
+function getProducts(){
+  try {
+    const stored = localStorage.getItem('aq_products');
+    if(!stored || stored === '[]'){
+      localStorage.setItem('aq_products', JSON.stringify(defaultProducts));
+      return defaultProducts;
+    }
+    return JSON.parse(stored);
+  } catch(e) {
+    console.error('Storage error:', e);
+    return defaultProducts;
+  }
+}
+
+function saveProducts(products){ 
+  try {
+    localStorage.setItem('aq_products', JSON.stringify(products)); 
+  } catch(e) {
+    alert('Error saving: ' + e.message);
+  }
+}
+
+// LOGIN
+function doLogin(e){
+  e.preventDefault();
+  e.stopPropagation();
+
+  const pass = document.getElementById('adminPass').value;
+  const errorDiv = document.getElementById('loginError');
+
+  if(pass === ADMIN_PASS){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminPanel').classList.add('active');
+    document.getElementById('logoutBtn').classList.remove('hidden');
+    errorDiv.classList.add('hidden');
+    loadDashboard();
+    showToast('✅ Login successful!');
+  } else {
+    errorDiv.textContent = '❌ Wrong password! Try: aqwagel2026';
+    errorDiv.classList.remove('hidden');
+  }
+  return false;
+}
+
+function logout(){
+  document.getElementById('loginScreen').style.display = 'block';
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('logoutBtn').classList.add('hidden');
+  document.getElementById('adminPass').value = '';
+}
+
+// DASHBOARD
+function loadDashboard(){
+  const products = getProducts();
+
+  document.getElementById('statProducts').textContent = products.length;
+  document.getElementById('statStock').textContent = products.filter(p=>p.stock).length;
+  document.getElementById('statCategories').textContent = [...new Set(products.map(p=>p.cat))].length;
+
+  let totalReviews = 0;
+  products.forEach(p=>{ if(p.reviews) totalReviews += p.reviews.length; });
+  document.getElementById('statReviews').textContent = totalReviews;
+
+  // Group by category
+  const byCat = {};
+  products.forEach(p=>{
+    if(!byCat[p.cat]) byCat[p.cat] = [];
+    byCat[p.cat].push(p);
+  });
+
+  const container = document.getElementById('productsByCategory');
+  container.innerHTML = '';
+
+  Object.keys(byCat).forEach(cat=>{
+    const catProducts = byCat[cat];
+    const section = document.createElement('div');
+    section.className = 'category-section';
+    section.innerHTML = `
+      <div class="category-header">
+        <h3>${catLabels[cat] || cat}</h3>
+        <span class="count">${catProducts.length} products</span>
+      </div>
+      <div class="product-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Reviews</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${catProducts.map(p=>{
+              const reviewCount = p.reviews ? p.reviews.length : 0;
+              return `<tr>
+                <td><img src="${p.image || ''}" alt="${p.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:80px;height:60px;background:#f8fafc;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#999;font-size:.7rem\'>No Image</div>'"></td>
+                <td>
+                  <strong>${p.name}</strong>
+                  <br><small style="color:#666">${p.nameSi || ''}</small>
+                  <br><small style="color:#999">ID: ${p.id}</small>
+                </td>
+                <td>LKR ${p.price}</td>
+                <td>${p.stock ? '✅ In' : '❌ Out'}</td>
+                <td>${reviewCount}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn btn-primary btn-sm" onclick="openEditModal('${p.id}')">✏️ Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️ Delete</button>
+                  </div>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    container.appendChild(section);
+  });
+
+  // Reviews
+  const reviewsDiv = document.getElementById('reviewsList');
+  let allReviews = [];
+  products.forEach(p=>{
+    if(p.reviews){
+      p.reviews.forEach(r=>{
+        allReviews.push({...r, productName: p.name, productId: p.id});
+      });
+    }
+  });
+
+  if(allReviews.length === 0){
+    reviewsDiv.innerHTML = '<div class="empty-state"><p>No reviews yet.</p></div>';
+  } else {
+    reviewsDiv.innerHTML = allReviews.map(r=>`
+      <div style="padding:1rem;border-bottom:1px solid #e2e8f0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+          <div>
+            <strong style="color:#1a3c6e">${r.name}</strong> 
+            <span style="color:#666;font-size:.85rem">on <strong>${r.productName}</strong></span>
+          </div>
+          <span style="color:#666;font-size:.8rem">${r.date}</span>
+        </div>
+        <div style="color:#f9a825">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div>
+        <p style="color:#666;font-size:.9rem;margin-top:.5rem">${r.text}</p>
+      </div>
+    `).join('');
+  }
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// IMAGE UPLOAD
+function handleImageUpload(input, previewId, areaId, dataId){
+  const file = input.files[0];
+  if(!file) return;
+
+  if(file.size > 2 * 1024 * 1024){
+    alert('Image too large! Max 2MB. Please compress your image.');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const base64 = e.target.result;
+    document.getElementById(dataId).value = base64;
+    const preview = document.getElementById(previewId);
+    preview.src = base64;
+    preview.classList.add('show');
+    document.getElementById(areaId).classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+// EDIT PRODUCT
+function openEditModal(id){
+  const products = getProducts();
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+
+  document.getElementById('editId').value = p.id;
+  document.getElementById('editName').value = p.name;
+  document.getElementById('editNameSi').value = p.nameSi || '';
+  document.getElementById('editCat').value = p.cat;
+  document.getElementById('editPrice').value = p.price;
+  document.getElementById('editDesc').value = p.desc || '';
+  document.getElementById('editStock').checked = p.stock;
+  document.getElementById('editImageData').value = '';
+
+  const currentImg = document.getElementById('editCurrentImg');
+  if(p.image){
+    currentImg.src = p.image;
+    currentImg.style.display = 'block';
+  } else {
+    currentImg.style.display = 'none';
+  }
+
+  document.getElementById('editImgPreview').classList.remove('show');
+  document.getElementById('editUploadArea').classList.remove('has-image');
+  document.getElementById('editImageFile').value = '';
+
+  document.getElementById('editModal').classList.add('active');
+}
+
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('active');
+}
+
+function saveEdit(e){
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  const products = getProducts();
+  const idx = products.findIndex(p=>p.id===id);
+
+  if(idx === -1){
+    alert('Product not found!');
+    return;
+  }
+
+  const newImageData = document.getElementById('editImageData').value;
+
+  products[idx] = {
+    ...products[idx],
+    name: document.getElementById('editName').value,
+    nameSi: document.getElementById('editNameSi').value,
+    cat: document.getElementById('editCat').value,
+    price: parseInt(document.getElementById('editPrice').value),
+    desc: document.getElementById('editDesc').value,
+    stock: document.getElementById('editStock').checked,
+    image: newImageData || products[idx].image
+  };
+
+  saveProducts(products);
+  closeEditModal();
+  loadDashboard();
+  showToast('✅ Product updated!');
+}
+
+// DELETE PRODUCT
+function deleteProduct(id){
+  const p = getProducts().find(x=>x.id===id);
+  const name = p ? p.name : id;
+  if(!confirm(`Delete "${name}"? This cannot be undone!`)) return;
+
+  const products = getProducts().filter(p=>p.id!==id);
+  saveProducts(products);
+  loadDashboard();
+  showToast('🗑️ Product deleted!');
+}
+
+// ADD PRODUCT
+function doAddProduct(e){
+  e.preventDefault();
+  const products = getProducts();
+
+  const newId = document.getElementById('newId').value.trim();
+
+  if(products.find(p=>p.id===newId)){
+    alert('❌ Product ID already exists! Use a different ID.\nExample: world-map-population');
+    return;
+  }
+
+  const imageData = document.getElementById('newImageData').value;
+  if(!imageData){
+    alert('❌ Please upload a product image!');
+    return;
+  }
+
+  const newProduct = {
+    id: newId,
+    name: document.getElementById('newName').value.trim(),
+    nameSi: document.getElementById('newNameSi').value.trim(),
+    cat: document.getElementById('newCat').value,
+    price: parseInt(document.getElementById('newPrice').value),
+    image: imageData,
+    desc: document.getElementById('newDesc').value.trim(),
+    stock: document.getElementById('newStock').checked,
+    reviews: [],
+    rating: 0
+  };
+
+  products.push(newProduct);
+  saveProducts(products);
+
+  // Reset form
+  e.target.reset();
+  document.getElementById('newImgPreview').classList.remove('show');
+  document.getElementById('uploadArea').classList.remove('has-image');
+  document.getElementById('newImageData').value = '';
+  document.getElementById('newStock').checked = true;
+
+  loadDashboard();
+  showToast('✅ Product added!');
+
+  // Switch to products tab
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.tab').classList.add('active');
+  document.getElementById('tab-products').classList.add('active');
+}
+
+// TOAST
+function showToast(msg){
+  const t=document.createElement('div'); 
+  t.className='toast'; 
+  t.textContent=msg; 
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},2500);
+}
+
+// ATTACH EVENT LISTENERS WHEN PAGE LOADS
+document.addEventListener('DOMContentLoaded', function(){
+  // Login form
+  document.getElementById('loginForm').addEventListener('submit', doLogin);
+
+  // Add product form
+  document.getElementById('addProductForm').addEventListener('submit', doAddProduct);
+
+  // Edit product form
+  document.getElementById('editProductForm').addEventListener('submit', saveEdit);
+});
+</script>
+</body>
+</html>
